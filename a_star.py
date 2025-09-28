@@ -1,28 +1,30 @@
-grid = [[0, 0, 0, 1, 0],
-        [0, 1, 1, 1, 0],
-        [0, 0, 0, 0, 0],
-        [1, 0, 1, 1, 0],
-        [1, 0, 0, 1, 0],
-        [1, 1, 1, 1, 0],
-        [0, 0, 0, 0, 0]]
+"""Convenience helpers to run the slide puzzle solver from the command line."""
 
-ROWS = len(grid)
-COLS = len(grid[0])
+from __future__ import annotations
 
-def manhattan(a, b):
-    (x1, y1), (x2, y2) = a, b
-    return abs(x1 - x2) + abs(y1 - y2)
+from typing import Iterable, Sequence
 
-def neighbors(r, c):
-    for nr, nc in [(r-1,c), (r+1,c), (r, c-1), (r,c+1)]:
-        if 0 <= nr < ROWS and 0 <= nc < COLS and grid[nc][nr] == 0:
-            yield (nr, nc)
-
-def findShortest(grid):
-    start = (0, 0)
-    goal = (6, 4)
-
-    
+from src.slide_puzzle.puzzle import SlidePuzzleState, solve_puzzle
 
 
-    
+def state_from_rows(rows: Sequence[Sequence[int]]) -> SlidePuzzleState:
+    size = len(rows)
+    flat: list[int] = []
+    for row in rows:
+        if len(row) != size:
+            raise ValueError("Rows must form a square grid")
+        flat.extend(row)
+    return SlidePuzzleState.from_sequence(size, flat)
+
+
+def solve_from_rows(rows: Sequence[Sequence[int]]) -> Iterable[int]:
+    state = state_from_rows(rows)
+    return solve_puzzle(state)
+
+
+if __name__ == "__main__":
+    start = SlidePuzzleState.solved(3).shuffle(30)
+    solution = solve_puzzle(start)
+    print("Start:", start.tiles)
+    print("Moves (tile numbers):", solution)
+    print("Solution length:", len(solution))
