@@ -6,9 +6,9 @@ from PIL import Image
 
 
 try:
-    _LANCZOS = Image.Resampling.LANCZOS  # Pillow >= 10.0
-except AttributeError:  # pragma: no cover
-    _LANCZOS = Image.LANCZOS  # Pillow < 10
+    _LANCZOS = Image.Resampling.LANCZOS
+except AttributeError:
+    _LANCZOS = Image.LANCZOS 
 
 
 def _open_image(path: Path) -> Image.Image:
@@ -30,7 +30,6 @@ def prepare_image(path: str, grid_size: int, tile_pixels: int) -> Image.Image:
 
 
 def slice_image(path: str, grid_size: int = 3, tile_pixels: int = 150) -> Dict[int, Image.Image]:
-    """Return a dict mapping tile id -> PIL image; tile id 0 is the blank tile."""
     prepared = prepare_image(path, grid_size, tile_pixels)
     tiles: Dict[int, Image.Image] = {}
     for idx in range(grid_size * grid_size - 1):

@@ -14,8 +14,8 @@ from .puzzle import SlidePuzzleState, solve_puzzle
 class SlidePuzzleApp(tk.Tk):
     def __init__(self, grid_size: int = 3, tile_pixels: int = 150) -> None:
         super().__init__()
-        self.title("Image Slide Puzzle")
-        self.resizable(False, False)
+        self.title("Slide Puzzle")
+        self.resizable(True, True)
 
         self.grid_size = grid_size
         self.tile_pixels = tile_pixels
@@ -25,7 +25,7 @@ class SlidePuzzleApp(tk.Tk):
         self.buttons: List[tk.Button] = []
         self._solving = False
 
-        self.status_var = tk.StringVar(value="Load an image to get started")
+        self.status_var = tk.StringVar(value="Upload an image!!")
 
         self._build_widgets()
 
@@ -33,7 +33,7 @@ class SlidePuzzleApp(tk.Tk):
         controls = tk.Frame(self)
         controls.pack(padx=10, pady=10)
 
-        tk.Button(controls, text="Load Image", command=self.load_image).grid(row=0, column=0, padx=5)
+        tk.Button(controls, text="Upload Image", command=self.load_image).grid(row=0, column=0, padx=5)
         self.shuffle_btn = tk.Button(controls, text="Shuffle", command=self.shuffle, state=tk.DISABLED)
         self.shuffle_btn.grid(row=0, column=1, padx=5)
         self.solve_btn = tk.Button(controls, text="Solve", command=self.solve, state=tk.DISABLED)
@@ -48,8 +48,6 @@ class SlidePuzzleApp(tk.Tk):
         for idx in range(self.grid_size * self.grid_size):
             button = tk.Button(
                 self.board,
-                width=self.tile_pixels // 10,
-                height=self.tile_pixels // 30,
                 command=lambda index=idx: self.on_tile_click(index),
                 relief=tk.RAISED,
                 bd=1,
@@ -87,11 +85,18 @@ class SlidePuzzleApp(tk.Tk):
         for idx, tile in enumerate(self.state.tiles):
             button = self.buttons[idx]
             if tile == 0:
-                button.config(image="", text="", state=tk.DISABLED, bg="#111")
-            else:
+                blank_image = self.photo_cache.get(0)
                 button.config(
-                    image=self.photo_cache.get(tile),
-                    text="" if tile in self.photo_cache else str(tile),
+                    image=blank_image,
+                    text="" if blank_image else " ",
+                    state=tk.DISABLED,
+                    bg="#111",
+                )
+            else:
+                tile_image = self.photo_cache.get(tile)
+                button.config(
+                    image=tile_image,
+                    text="" if tile_image else str(tile),
                     state=tk.NORMAL,
                     bg="white",
                 )
@@ -108,25 +113,25 @@ class SlidePuzzleApp(tk.Tk):
         self.state = next_state
         self.render_board()
         if self.state.is_solved():
-            self.status_var.set("Solved! Great job.")
+            self.status_var.set("YOU WIN! You get no prize, sorry.")
 
     def shuffle(self) -> None:
         if self.state is None or self._solving:
             return
         self.state = SlidePuzzleState.solved(self.grid_size).shuffle(moves=120)
-        self.status_var.set("Puzzle shuffled. Try solving it or press Solve.")
+        self.status_var.set("I like my puzzles the way I like my eggs... scrambled.")
         self.render_board()
 
     def solve(self) -> None:
         if self.state is None or self._solving:
             return
         if self.state.is_solved():
-            self.status_var.set("Already solved.")
+            self.status_var.set("Already solved, dude. Scramble it or something.")
             return
         self._solving = True
         self.shuffle_btn.config(state=tk.DISABLED)
         self.solve_btn.config(state=tk.DISABLED)
-        self.status_var.set("Solving...")
+        self.status_var.set("Fine, i'll solve it if you're that lazy.")
 
         thread = threading.Thread(target=self._solve_thread, daemon=True)
         thread.start()
@@ -141,7 +146,7 @@ class SlidePuzzleApp(tk.Tk):
         self.after(0, lambda: self._animate_solution(moves))
 
     def _on_solve_failed(self, exc: Exception) -> None:
-        self.status_var.set(f"Solver failed: {exc}")
+        self.status_var.set(f"Sorry dude, solver failed: {exc}")
         self.shuffle_btn.config(state=tk.NORMAL)
         self.solve_btn.config(state=tk.NORMAL)
         self._solving = False
@@ -169,3 +174,4 @@ class SlidePuzzleApp(tk.Tk):
 
 
 __all__ = ["SlidePuzzleApp"]
+
